@@ -1,0 +1,1060 @@
+<!DOCTYPE html> 
+<html lang="hr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/> 
+    <title>Dexterov Tajni Laboratorij - Rođendanski Izazov</title>
+    <style>
+        html, body {
+            margin: 0; padding: 0;
+            background: black;
+            font-family: sans-serif;
+            color: #00ff95;
+        }
+
+        @keyframes neonGlow {
+            0%, 100% {
+                box-shadow: 0 0 5px #00ff95, 0 0 10px #00ff95, 0 0 20px #00ff95, 0 0 30px #00ff95;
+            }
+            50% {
+                box-shadow: 0 0 3px #00ff95, 0 0 7px #00ff95, 0 0 15px #00ff95, 0 0 20px #00ff95;
+            }
+        }
+
+        @keyframes flashWarning {
+            0%, 100% { background: rgba(255,0,0,0.0); }
+            50% { background: rgba(255,0,0,0.3); }
+        }
+
+        #overlay, #fade-overlay, #quiz-overlay, #warning-overlay, #victory-overlay, #final-message-overlay, #post-end-flow-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        #overlay {
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #overlay-content {
+            max-width: 600px;
+        }
+
+        #overlay h1 {
+            margin-bottom: 20px;
+        }
+
+        #overlay p {
+            font-size: 1.2em;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        #fade-overlay {
+            pointer-events: none;
+            background: rgba(0,0,0,0);
+            transition: background 1s ease;
+            z-index: 1100;
+        }
+        #fade-overlay.blackout {
+            background: rgba(0,0,0,1);
+        }
+
+        .distort {
+            animation: flashWarning 1s infinite;
+        }
+
+        #quiz-overlay {
+            display: none;
+            background: rgba(0,0,0,0.9);
+            flex-direction: column;
+            padding: 20px; 
+            overflow-y: auto;
+            z-index: 2500;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        #quiz-container {
+            background: #111;
+            padding: 20px;
+            max-width: 600px;
+            border: 2px solid #00ff95;
+            border-radius: 10px;
+            margin: 20px auto; 
+            padding-bottom: 60px;
+        }
+
+        button {
+            background: #000; 
+            border: 2px solid #00ff95; 
+            padding: 10px 20px; 
+            font-size: 1.2em; 
+            color: #00ff95;
+            cursor: pointer; 
+            border-radius: 5px; 
+            font-family: sans-serif; 
+            transition: box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: neonGlow 2s infinite ease-in-out alternate;
+        }
+
+        button:hover:not(:disabled) {
+            box-shadow: 0 0 10px #00ff95, 0 0 20px #00ff95;
+            background: #000;
+            color: #00ff95;
+        }
+
+        button:disabled {
+            opacity: 0.5; cursor: not-allowed;
+            animation: none;
+            box-shadow: none;
+        }
+
+        #video-container {
+            width: 100%; height: 100%; position: relative;
+            z-index: 0;
+        }
+
+        video {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        #play-button {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1200;
+        }
+
+        #second-video-controls {
+            display: none; 
+            position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
+            z-index: 2000;
+            flex-direction: row; gap: 20px;
+        }
+
+        .quiz-question { margin-bottom: 20px; }
+        .quiz-question h3 { margin: 0 0 10px; }
+        .quiz-options label { display: block; margin-bottom: 5px; }
+        #quiz-result { margin-top: 20px; font-size: 1.2em; color: #00ff95; text-align: center; }
+
+        #quiz-submit { display: block; margin: 20px auto 0; }
+
+        #warning-overlay {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            z-index: 1001;
+        }
+
+        #warning-text {
+            font-size: 4em;
+            font-weight: bold;
+            color: red;
+            text-align: center;
+        }
+
+        #unisti-svena-button {
+            display: none;
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3000;
+        }
+
+        #victory-overlay {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            z-index: 3001;
+        }
+
+        #victory-text {
+            font-size: 4em;
+            font-weight: bold;
+            color: #00ff95;
+            text-align: center;
+        }
+
+        #story-intro {
+            text-align: center;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+
+        #timer {
+            font-size: 2em;
+            font-weight: bold;
+            position: absolute;
+            top: 20px; right: 20px;
+            color: #ff5050;
+        }
+
+        #final-message-overlay {
+            display: none;
+            background: black;
+            z-index: 4000;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #final-message-overlay p {
+            color: #00ff95;
+            font-size: 2em;
+            max-width: 80%;
+            margin: 0 auto;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+
+        #post-end-flow-overlay {
+            display: none;
+            background: rgba(0,0,0,0.8);
+            z-index: 3500;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            color: #00ff95;
+        }
+
+        #post-end-flow-overlay p {
+            font-size: 1.5em;
+            max-width: 80%;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="video-container">
+        <!-- Videos -->
+        <video id="intro-video" preload="auto" playsinline muted>
+            <source src="intro.mp4" type="video/mp4">
+            Vaš preglednik ne podržava HTML5 video.
+        </video>
+
+        <!-- Existing Audios -->
+        <audio id="robotic-audio" preload="auto"><source src="robotic-greeting.mp3" type="audio/mpeg"></audio>
+        <audio id="second-audio" preload="auto"><source src="second-audio.mp3" type="audio/mpeg"></audio>
+        <audio id="ambience-audio" preload="auto" loop><source src="ambience.mp3" type="audio/mpeg"></audio>
+        <audio id="door-audio" preload="auto"><source src="door-sound.mp3" type="audio/mpeg"></audio>
+        <audio id="bass-audio" preload="auto"><source src="bass.mp3" type="audio/mpeg"></audio>
+        <audio id="alarm-audio" preload="auto"><source src="alarm.mp3" type="audio/mpeg"></audio>
+        <audio id="sven-audio" preload="auto"><source src="sven.mp3" type="audio/mpeg"></audio>
+        <audio id="glass-audio" preload="auto"><source src="glass.mp3" type="audio/mpeg"></audio>
+        <audio id="tenk-audio" preload="auto"><source src="tenk1.mp3" type="audio/mpeg"></audio>
+        <audio id="gumb-audio" preload="auto"><source src="gumb.mp3" type="audio/mpeg"></audio>
+        <audio id="mystery-audio" preload="auto" loop><source src="mystery-audio.mp3" type="audio/mpeg"></audio>
+        <audio id="typewriter-audio" preload="auto" loop><source src="typewriter.mp3" type="audio/mpeg"></audio>
+        <audio id="whisper-audio" preload="auto" loop><source src="whisper-audio.mp3" type="audio/mpeg"></audio>
+        <audio id="heartbeat-audio" preload="auto" loop><source src="heartbeat-audio.mp3" type="audio/mpeg"></audio>
+        <audio id="mechanical-audio" preload="auto" loop><source src="mechanical-audio.mp3" type="audio/mpeg"></audio>
+        <audio id="footsteps-audio" preload="auto" loop><source src="footsteps-audio.mp3" type="audio/mpeg"></audio>
+        <audio id="breathing-audio" preload="auto" loop><source src="breathing-audio.mp3" type="audio/mpeg"></audio>
+        <audio id="hum-audio" preload="auto" loop><source src="hum-audio.mp3" type="audio/mpeg"></audio>
+        <audio id="final-voice-audio" preload="auto"><source src="final-voice.mp3" type="audio/mpeg"></audio>
+        <audio id="audio28" preload="auto" loop><source src="28.mp3" type="audio/mpeg"></audio>
+
+        <!-- New Audios for final steps -->
+        <audio id="audio23" preload="auto" loop><source src="23.mp3" type="audio/mpeg"></audio>
+        <audio id="audioNe" preload="auto"><source src="ne.mp3" type="audio/mpeg"></audio>
+        <audio id="audioSid" preload="auto"><source src="sid.mp3" type="audio/mpeg"></audio>
+    </div>
+
+    <div id="overlay">
+        <div id="overlay-content">
+            <h1>Dextere, dobrodošao...</h1>
+            <p id="intro-text"></p>
+            <button id="start-button" aria-label="Početak doživljaja" style="display:none;">Započni</button>
+        </div>
+    </div>
+
+    <div id="fade-overlay"></div>
+
+    <button id="play-button" aria-label="Igraj">Igraj</button>
+
+    <div id="second-video-controls" aria-label="Kontrole drugog videa">
+        <button id="kviz-button" aria-label="Pokreni kviz">Kviz</button>
+        <button id="pokazi-tenk-button" disabled aria-label="Pokaži tenk">POKAŽI TENK</button>
+        <button id="natrag-button" aria-label="Natrag">Natrag</button>
+    </div>
+
+    <div id="quiz-overlay" aria-label="Kviz overlay">
+        <div id="timer">60</div>
+        <div id="quiz-container">
+            <h2>Test Znanja</h2>
+            <div id="story-intro"></div>
+            <div id="quiz-questions"></div>
+            <button id="quiz-submit">Potvrdi Odgovore</button>
+            <div id="quiz-result"></div>
+        </div>
+    </div>
+
+    <div id="warning-overlay" aria-label="Upozorenje entitet na slobodi">
+        <div id="warning-text">SVEN JE POBJEDIO</div>
+    </div>
+
+    <button id="unisti-svena-button" aria-label="Uništi entitet">UNIŠTI NEPRIJATELJA</button>
+
+    <div id="victory-overlay" aria-label="Pobjeda overlay">
+        <div id="victory-text">DEXTER, UNIŠTIO SI ZLOG ROBOTA SVENA!</div>
+    </div>
+
+    <div id="final-message-overlay">
+        <p>ČOKOLADA JE GORE NA KATU, U TVOJOJ SOBI IZA TELEVIZORA, SRETAN ROĐENDAN</p>
+    </div>
+
+    <div id="post-end-flow-overlay">
+        <p id="post-end-text"></p>
+        <div id="post-end-button-container"></div>
+    </div>
+
+    <script>
+        console.log("Script loaded");
+
+        // Elements
+        const startBtn = document.getElementById('start-button');
+        const overlay = document.getElementById('overlay');
+        const introTextEl = document.getElementById('intro-text');
+        const storyIntroEl = document.getElementById('story-intro');
+        const quizQuestionsContainer = document.getElementById('quiz-questions');
+        const video = document.getElementById('intro-video');
+        const audioRobot = document.getElementById('robotic-audio');
+        const audioSecond = document.getElementById('second-audio');
+        const audioAmbience = document.getElementById('ambience-audio');
+        const audioDoor = document.getElementById('door-audio');
+        const audioBass = document.getElementById('bass-audio');
+        const alarmAudio = document.getElementById('alarm-audio');
+        const svenAudio = document.getElementById('sven-audio');
+        const glassAudio = document.getElementById('glass-audio');
+        const tenkAudio = document.getElementById('tenk-audio');
+        const gumbAudio = document.getElementById('gumb-audio');
+        const mysteryAudio = document.getElementById('mystery-audio');
+        const typewriterAudio = document.getElementById('typewriter-audio');
+        const whisperAudio = document.getElementById('whisper-audio');
+        const heartbeatAudio = document.getElementById('heartbeat-audio');
+        const mechanicalAudio = document.getElementById('mechanical-audio');
+        const footstepsAudio = document.getElementById('footsteps-audio');
+        const breathingAudio = document.getElementById('breathing-audio');
+        const humAudio = document.getElementById('hum-audio');
+        const finalVoiceAudio = document.getElementById('final-voice-audio');
+        const audio28 = document.getElementById('audio28');
+        const audio23 = document.getElementById('audio23');
+        const audioNe = document.getElementById('audioNe');
+        const audioSid = document.getElementById('audioSid');
+
+        const fadeOverlay = document.getElementById('fade-overlay');
+        const playButton = document.getElementById('play-button');
+        const secondVideoControls = document.getElementById('second-video-controls');
+        const kvizButton = document.getElementById('kviz-button');
+        const pokaziTenkButton = document.getElementById('pokazi-tenk-button');
+        const natragButton = document.getElementById('natrag-button');
+        const quizOverlay = document.getElementById('quiz-overlay');
+        const quizSubmitBtn = document.getElementById('quiz-submit');
+        const quizResult = document.getElementById('quiz-result');
+        const warningOverlay = document.getElementById('warning-overlay');
+        const unistiSvenaButton = document.getElementById('unisti-svena-button');
+        const victoryOverlay = document.getElementById('victory-overlay');
+        const timerDisplay = document.getElementById('timer');
+        const finalMessageOverlay = document.getElementById('final-message-overlay');
+        const postEndFlowOverlay = document.getElementById('post-end-flow-overlay');
+        const postEndText = document.getElementById('post-end-text');
+        const postEndBtnContainer = document.getElementById('post-end-button-container');
+
+        secondVideoControls.style.display = 'none';
+        unistiSvenaButton.style.display = 'none'; 
+        victoryOverlay.style.display = 'none';
+
+        let timeLeft = 60;
+        let timerInterval;
+        let userHasInteracted = false;
+
+        const questions = [
+            {
+                question: "Koja je glavna valuta u igri World of Tanks?",
+                name: "q1",
+                options: [
+                    {text:"Krediti", val:"credits"},
+                    {text:"Zlato", val:"gold"},
+                    {text:"Obveznice", val:"bonds"}
+                ],
+                correctVal: "credits"
+            },
+            {
+                question: "Koji faktor često odlučuje ishod bitke na otvorenom terenu?",
+                name: "q2",
+                options: [
+                    {text:"Pozicioniranje i pokrivanje", val:"pozicioniranje"},
+                    {text:"Vrsta municije", val:"municija"},
+                    {text:"Razina kamuflaže", val:"kamuflaza"}
+                ],
+                correctVal: "pozicioniranje"
+            },
+            {
+                question: "Koja je strategija ključna za pobjedu u World of Tanks?",
+                name: "q3",
+                options: [
+                    {text:"Suradnja i koordinacija s timom", val:"tim"},
+                    {text:"Samostalno junačenje bez tima", val:"solo"},
+                    {text:"Kampiranje na jednom mjestu cijelu bitku", val:"kampiranje"}
+                ],
+                correctVal: "tim"
+            },
+            {
+                question: "Što 'XP' predstavlja u igri?",
+                name: "q4",
+                options: [
+                    {text:"Experience (Iskustvo)", val:"experience"},
+                    {text:"Eksplozivnu municiju", val:"explosives"},
+                    {text:"Dodatne bodove za kupnju opreme", val:"extra points"}
+                ],
+                correctVal: "experience"
+            },
+            {
+                question: "Koja je uloga lakih tenkova u World of Tanks bitkama?",
+                name: "q5",
+                options: [
+                    {text:"Izviđanje i otkrivanje neprijatelja", val:"scouting"},
+                    {text:"Bliska borba", val:"brawling"},
+                    {text:"Uništavanje artiljerije", val:"artillery counter"}
+                ],
+                correctVal: "scouting"
+            },
+            {
+                question: "Koja nacija u WoT je poznata po tenkovima s preciznim topovima?",
+                name: "q6",
+                options: [
+                    {text:"Njemačka", val:"Njemacka"},
+                    {text:"SSSR", val:"SSSR"},
+                    {text:"Ujedinjeno Kraljevstvo", val:"UK"}
+                ],
+                correctVal: "Njemacka"
+            },
+            {
+                question: "Koja je uloga artiljerije (SPG) u igri?",
+                name: "q7",
+                options: [
+                    {text:"Dalekometna podrška gađanjem iznad prepreka", val:"podrska iz daljine"},
+                    {text:"Izviđanje terena", val:"izvidjanje"},
+                    {text:"Direktno razaranje tenkova iz blizine", val:"tenk razaranja"}
+                ],
+                correctVal: "podrska iz daljine"
+            },
+            {
+                question: "Koja vrsta tenka obično ima najdeblji oklop?",
+                name: "q8",
+                options: [
+                    {text:"Teški tenkovi", val:"teski"},
+                    {text:"Laki tenkovi", val:"laki"},
+                    {text:"Artiljerija", val:"artiljerija"}
+                ],
+                correctVal: "teski"
+            },
+            {
+                question: "Kako se naziva način igre gdje timovi brane ili napadaju bazu?",
+                name: "q9",
+                options: [
+                    {text:"Opsada", val:"opsada"},
+                    {text:"Napad/Obrana", val:"napad_odbrana"},
+                    {text:"Lov na tenkove", val:"lov"}
+                ],
+                correctVal: "napad_odbrana"
+            },
+            {
+                question: "Koja je važnost mehanike penetracije oklopa?",
+                name: "q10",
+                options: [
+                    {text:"Određuje hoće li granata probiti neprijateljski tenk", val:"penetracija"},
+                    {text:"Određuje brzinu kretanja tenka", val:"brzina"},
+                    {text:"Određuje vidno polje tenka", val:"vidno_polje"}
+                ],
+                correctVal: "penetracija"
+            }
+        ];
+
+        const introStory = "Nešto se skriva ispod površine...\nRođendan, a ipak, hladnoća u zraku. Tvoj Laboratorij je drugačiji.\nŠumovi, koraci, strojevi izvan kontrole.\nTreperi ti u mislima: 'Nisi sam... Nisi siguran...'\nPostoji netko ili nešto iza tih vrata.\n";
+        const quizStory = "Vremena je malo.\nOvaj test nije običan kviz.\nOdgovori točno, ili će tajna iza stakla... prodrijeti van.\nNe znaš ime, ne znaš lice, ali osjećaš njegovu glad.\nDok tipkaš, nešto se pomiče u sjeni.\nPožuri, Dextere, ili će tvoja sudbina biti otkrivena.\n";
+
+        // Re-adding volume settings
+        audioRobot.volume = 1.0; 
+        audioSecond.volume = 0.4;
+        audioAmbience.volume = 0.2;
+        audioDoor.volume = 0.3; 
+        audioBass.volume = 1.0;
+        tenkAudio.volume = 1.0;
+        gumbAudio.volume = 1.0;
+        mysteryAudio.volume = 0.15;
+        typewriterAudio.volume = 0.3;
+        whisperAudio.volume = 0.1;
+        heartbeatAudio.volume = 0.2;
+        mechanicalAudio.volume = 0.2;
+        footstepsAudio.volume = 0.15;
+        breathingAudio.volume = 0.2;
+        humAudio.volume = 0.1;
+        finalVoiceAudio.volume = 1.0;
+        audio28.volume = 1.0;
+        audio23.volume = 1.0;
+        audioNe.volume = 1.0;
+        audioSid.volume = 1.0;
+
+        let currentQuestions = [];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function buildQuiz() {
+            quizQuestionsContainer.innerHTML = "";
+            let allQs = questions.slice();
+            shuffleArray(allQs);
+            currentQuestions = allQs.slice(0,7);
+
+            currentQuestions.forEach((qObj, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.classList.add('quiz-question');
+
+                const h3 = document.createElement('h3');
+                h3.textContent = (index+1) + ". " + qObj.question;
+                qDiv.appendChild(h3);
+
+                const optsDiv = document.createElement('div');
+                optsDiv.classList.add('quiz-options');
+
+                qObj.options.forEach(opt => {
+                    const label = document.createElement('label');
+                    const input = document.createElement('input');
+                    input.type = "radio";
+                    input.name = qObj.name;
+                    input.value = opt.val;
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(" " + opt.text));
+                    optsDiv.appendChild(label);
+                });
+                qDiv.appendChild(optsDiv);
+                quizQuestionsContainer.appendChild(qDiv);
+            });
+
+            quizResult.textContent = "";
+        }
+
+        function clearSelections() {
+            const radios = quizOverlay.querySelectorAll('input[type=radio]');
+            radios.forEach(r => r.checked = false);
+        }
+
+        function startQuizTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 60;
+            timerDisplay.textContent = timeLeft;
+            humAudio.play().catch(()=>{});
+            setTimeout(() => fadeOutAudio(humAudio, 3000), 20000);
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                if (timeLeft === 30) whisperAudio.play().catch(()=>{ setTimeout(()=>fadeOutAudio(whisperAudio),15000); });
+                if (timeLeft === 20) heartbeatAudio.play().catch(()=>{ setTimeout(()=>fadeOutAudio(heartbeatAudio),10000); });
+                if (timeLeft === 15) footstepsAudio.play().catch(()=>{ setTimeout(()=>fadeOutAudio(footstepsAudio),10000); });
+                if (timeLeft === 5) breathingAudio.play().catch(()=>{ setTimeout(()=>fadeOutAudio(breathingAudio),5000); });
+                if (timeLeft === 10) {
+                    mechanicalAudio.play().catch(()=>{});
+                    quizOverlay.classList.add('distort');
+                    setTimeout(() => fadeOutAudio(mechanicalAudio), 10000);
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timeOutFail();
+                }
+            }, 1000);
+        }
+
+        function timeOutFail() {
+            console.log("Time ran out, immediate fail.");
+            quizOverlay.style.display = 'none';
+            secondVideoControls.style.display = 'none';
+
+            video.pause();
+            video.loop = false;
+            video.src = "fail.mp4";
+            video.load();
+
+            video.play().then(() => {
+                console.log("fail.mp4 playing due to timeout");
+                warningOverlay.style.display = 'flex';
+                alarmAudio.play().catch(()=>{});
+                glassAudio.play().catch(()=>{});
+                svenAudio.play().catch(()=>{}); 
+            }).catch(err => console.error("fail.mp4 error:", err));
+
+            video.addEventListener('ended', () => {
+                console.log("fail.mp4 ended, returning to after intro");
+                video.pause();
+                video.src = "intro.mp4";
+                video.load();
+                audioBass.pause();
+                audioBass.currentTime = 0;
+                goToAfterIntro();
+            }, { once: true });
+        }
+
+        function checkQuizAnswersCount() {
+            let correctCount = 0;
+            currentQuestions.forEach((qObj) => {
+                const radios = quizOverlay.querySelectorAll(`input[name="${qObj.name}"]`);
+                for (let r of radios) {
+                    if (r.checked && r.value === qObj.correctVal) {
+                        correctCount++;
+                        break;
+                    }
+                }
+            });
+            return correctCount;
+        }
+
+        function handleQuizSubmission() {
+            console.log("Potvrdi Odgovore clicked");
+            clearInterval(timerInterval);
+            let correctCount = checkQuizAnswersCount();
+            console.log("Correct answers:", correctCount);
+
+            if (correctCount === currentQuestions.length) {
+                console.log("Perfect success");
+                quizResult.textContent = "Savršeno! Stvor je zaustavljen, sada znaš njegovo ime: ... 'Sven'.";
+                pokaziTenkButton.disabled = false;
+                quizResult.scrollIntoView({behavior:'smooth', block:'center'});
+                setTimeout(() => {
+                    quizOverlay.style.display = 'none';
+                    secondVideoControls.style.display = 'flex';
+                }, 1500);
+            } else if (correctCount > 0) {
+                console.log("Partial success: partial fail scenario");
+                quizResult.textContent = "Djelomično... Čuješ šapat: 'Sv... Sve...' ne možeš razaznati. Prekasno.";
+                quizResult.scrollIntoView({behavior:'smooth', block:'center'});
+                setTimeout(() => {
+                    partialFailScenario();
+                }, 3000);
+            } else {
+                console.log("No correct answers: immediate fail");
+                quizResult.textContent = "Ništa... Čuješ ime: 'Sven'... Prekasno.";
+                quizResult.scrollIntoView({behavior:'smooth', block:'center'});
+                setTimeout(() => {
+                    immediateFailScenario();
+                }, 3000);
+            }
+        }
+
+        function immediateFailScenario() {
+            quizOverlay.style.display = 'none';
+            secondVideoControls.style.display = 'none';
+
+            video.pause();
+            video.loop = false;
+            video.src = "fail.mp4";
+            video.load();
+
+            video.play().then(() => {
+                console.log("fail.mp4 playing (0 correct)");
+                warningOverlay.style.display = 'flex';
+                alarmAudio.play().catch(()=>{});
+                svenAudio.play().catch(()=>{});
+                glassAudio.play().catch(()=>{});
+            }).catch(err => console.error("fail.mp4 error:", err));
+
+            video.addEventListener('ended', () => {
+                console.log("fail.mp4 ended, returning to after intro");
+                video.pause();
+                video.src = "intro.mp4";
+                video.load();
+                audioBass.pause();
+                audioBass.currentTime = 0;
+                goToAfterIntro();
+            }, { once: true });
+        }
+
+        function partialFailScenario() {
+            quizOverlay.style.display = 'none';
+            secondVideoControls.style.display = 'none';
+
+            video.pause();
+            video.loop = false;
+            video.src = "fail.mp4";
+            video.load();
+
+            video.play().then(() => {
+                console.log("fail.mp4 playing (partial fail)");
+                warningOverlay.style.display = 'flex';
+                alarmAudio.play().catch(()=>{});
+                glassAudio.play().catch(()=>{});
+                svenAudio.play().catch(()=>{}); 
+            }).catch(err => console.error("fail.mp4 error:", err));
+
+            video.addEventListener('ended', () => {
+                console.log("fail.mp4 ended, partial scenario done");
+                video.pause();
+                video.src = "intro.mp4";
+                video.load();
+                audioBass.pause();
+                audioBass.currentTime = 0;
+                goToAfterIntro();
+            }, { once: true });
+        }
+
+        function stopAllAudiosExcept(exceptions = []) {
+            const allAudios = [audioRobot, audioSecond, audioAmbience, audioDoor, audioBass, alarmAudio, svenAudio, glassAudio, tenkAudio, gumbAudio, mysteryAudio, typewriterAudio, whisperAudio, heartbeatAudio, mechanicalAudio, footstepsAudio, breathingAudio, humAudio, finalVoiceAudio, audio28, audio23, audioNe, audioSid];
+            for (let a of allAudios) {
+                if (!exceptions.includes(a)) {
+                    a.pause();
+                    a.currentTime = 0;
+                }
+            }
+        }
+
+        startBtn.addEventListener('click', async () => {
+            console.log("Start Experience clicked");
+            userHasInteracted = true;
+            overlay.style.display = 'none';
+            video.muted = false;
+            try {
+                video.currentTime = 0;
+                await video.play().catch(err => console.error("intro.mp4 Autoplay blocked:", err));
+                console.log("intro.mp4 playing");
+                audioAmbience.play().catch(()=>{});
+                mysteryAudio.play().catch(()=>{});
+                setTimeout(()=>fadeOutAudio(mysteryAudio),25000);
+
+                setTimeout(() => {
+                    audioRobot.play().catch(()=>{});
+                    audioSecond.play().catch(()=>{});
+                    setTimeout(() => fadeOutAudio(audioSecond), 8000);
+                }, 3000);
+
+                setTimeout(() => {
+                    console.log("Attempting to play door-sound now");
+                    audioDoor.play().then(() => console.log("door-sound playing"))
+                    .catch(err => console.error("Door sound error:", err));
+                    setTimeout(()=>fadeOutAudio(audioDoor),4000);
+                }, 5000);
+
+                video.addEventListener('ended', () => {
+                    console.log("intro.mp4 ended");
+                    audioDoor.pause();
+                    audioDoor.currentTime = 0;
+                    playButton.style.display = 'block';
+                }, { once: true });
+
+            } catch (err) {
+                console.error("Error starting experience:", err);
+            }
+        });
+
+        playButton.addEventListener('click', () => {
+            console.log("Igraj clicked");
+            fadeOverlay.classList.add('blackout');
+            fadeOverlay.addEventListener('transitionend', () => {
+                console.log("Faded to black, loading gate.mp4");
+                video.pause();
+                video.loop = false;
+                video.src = "gate.mp4";
+                video.load();
+                video.play().then(() => {
+                    console.log("gate.mp4 playing");
+                    audioBass.currentTime = 0;
+                    audioBass.play().catch(()=>{});
+                    setTimeout(() => {
+                        fadeOverlay.classList.remove('blackout');
+                    }, 500);
+
+                    video.addEventListener('ended', onGateVideoEnd, { once: true });
+                }).catch(err => console.error("gate.mp4 error:", err));
+
+                playButton.style.display = 'none';
+            }, { once: true });
+        });
+
+        const onGateVideoEnd = () => {
+            console.log("gate.mp4 ended once. Showing secondVideoControls now.");
+            video.loop = true;
+            video.play().catch(err => console.error("Error looping gate:", err));
+            secondVideoControls.style.display = 'flex';
+            console.log("secondVideoControls now visible");
+        };
+
+        kvizButton.addEventListener('click', () => {
+            console.log("Kviz clicked");
+            secondVideoControls.style.display = 'none';
+            buildQuiz();
+            clearSelections();
+            quizOverlay.style.display = 'flex';
+            storyIntroEl.textContent = '';
+            typeText(storyIntroEl, quizStory, () => {
+                startQuizTimer();
+            });
+        });
+
+        quizSubmitBtn.addEventListener('click', handleQuizSubmission);
+
+        pokaziTenkButton.addEventListener('click', () => {
+            console.log("POKAŽI TENK clicked");
+            fadeOverlay.classList.add('blackout');
+            fadeOverlay.addEventListener('transitionend', () => {
+                console.log("Switching to tank.mp4");
+                video.pause();
+                video.loop = true; 
+                video.src = "tank.mp4";
+                video.load();
+                video.play().then(() => {
+                    console.log("tank.mp4 playing");
+                    tenkAudio.currentTime = 0;
+                    stopAllAudiosExcept([tenkAudio, audio28]);
+                    tenkAudio.play().catch(()=>{});
+                    setTimeout(() => fadeOutAudio(tenkAudio), 15000);
+                    audio28.currentTime = 0;
+                    audio28.play().catch(()=>{});
+                }).catch(err => console.error("tank.mp4 error:", err));
+
+                quizOverlay.style.display = 'none';
+                secondVideoControls.style.display = 'none';
+
+                setTimeout(() => {
+                    fadeOverlay.classList.remove('blackout');
+                }, 500);
+
+                unistiSvenaButton.style.display = 'block';
+            }, { once: true });
+        });
+
+        unistiSvenaButton.addEventListener('click', () => {
+            console.log("UNIŠTI NEPRIJATELJA clicked");
+            fadeOverlay.classList.add('blackout');
+            fadeOverlay.addEventListener('transitionend', () => {
+                console.log("Switching to end.mp4");
+                video.pause();
+                video.loop = false;
+                video.src = "end.mp4";
+                video.load();
+                video.play().then(() => {
+                    console.log("end.mp4 playing");
+                    victoryOverlay.style.display = 'flex';
+                    console.log("Attempting to play final-voice-audio now");
+                    finalVoiceAudio.currentTime = 0;
+                    finalVoiceAudio.play().then(()=>{
+                        console.log("final-voice-audio playing");
+                    }).catch(err=>{
+                        console.error("final-voice-audio error:", err);
+                    });
+                }).catch(err => console.error("end.mp4 error:", err));
+
+                unistiSvenaButton.style.display = 'none';
+
+                video.addEventListener('ended', () => {
+                    console.log("end.mp4 ended");
+                    finalVoiceAudio.pause();
+                    finalVoiceAudio.currentTime = 0;
+                    audio28.pause();
+                    audio28.currentTime = 0;
+
+                    victoryOverlay.style.display = 'none';
+                    stopAllAudiosExcept([]);
+                    showPostEndFlow(); 
+                }, { once: true });
+
+                setTimeout(() => {
+                    fadeOverlay.classList.remove('blackout');
+                }, 500);
+            }, { once: true });
+        });
+
+        natragButton.addEventListener('click', () => {
+            console.log("Natrag clicked");
+            fadeOverlay.classList.add('blackout');
+            fadeOverlay.addEventListener('transitionend', () => {
+                console.log("Going back to after intro");
+                audioBass.pause();
+                audioBass.currentTime = 0;
+
+                video.pause();
+                video.loop = false;
+                video.src = "intro.mp4";
+                video.load();
+
+                goToAfterIntro();
+            }, { once: true });
+        });
+
+        const allButtons = document.querySelectorAll('button');
+        allButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                gumbAudio.currentTime = 0;
+                gumbAudio.play().catch(()=>{});
+                setTimeout(()=>fadeOutAudio(gumbAudio),2000);
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            introTextEl.textContent = '';
+            typeText(introTextEl, introStory, () => {
+                startBtn.style.display = 'inline-block';
+            });
+        });
+
+        function typeText(element, text, callback) {
+            let index = 0;
+            if (typewriterAudio.paused || typewriterAudio.currentTime === 0) {
+                typewriterAudio.play().catch(err => {
+                    console.error("Typewriter audio error:", err);
+                });
+            }
+
+            const interval = setInterval(() => {
+                element.textContent += text.charAt(index);
+                index++;
+                if (index === text.length) {
+                    clearInterval(interval);
+                    setTimeout(() => fadeOutAudio(typewriterAudio, 2000), 2000);
+                    if (callback) callback();
+                }
+            }, 50);
+        }
+
+        function fadeOutAudio(audio, duration = 3000) {
+            const step = 0.05;
+            const interval = duration / (1/step);
+            const fade = setInterval(() => {
+                if (audio.volume > step) {
+                    audio.volume = Math.max(0, audio.volume - step);
+                } else {
+                    audio.volume = 0;
+                    audio.pause();
+                    audio.currentTime = 0;
+                    clearInterval(fade);
+                }
+            }, interval);
+        }
+
+        function goToAfterIntro() {
+            overlay.style.display = 'none';
+            quizOverlay.style.display = 'none';
+            warningOverlay.style.display = 'none';
+            victoryOverlay.style.display = 'none';
+            finalMessageOverlay.style.display = 'none';
+            postEndFlowOverlay.style.display = 'none';
+            secondVideoControls.style.display = 'none';
+            unistiSvenaButton.style.display = 'none';
+            fadeOverlay.classList.remove('blackout');
+
+            audioBass.pause();
+            audioBass.currentTime = 0;
+            humAudio.pause(); humAudio.currentTime = 0;
+            whisperAudio.pause(); whisperAudio.currentTime = 0;
+            heartbeatAudio.pause(); heartbeatAudio.currentTime = 0;
+            mechanicalAudio.pause(); mechanicalAudio.currentTime = 0;
+            footstepsAudio.pause(); footstepsAudio.currentTime = 0;
+            breathingAudio.pause(); breathingAudio.currentTime = 0;
+            mysteryAudio.pause(); mysteryAudio.currentTime = 0;
+            typewriterAudio.pause(); typewriterAudio.currentTime = 0;
+
+            video.pause();
+            video.currentTime = 0;
+            video.src = "intro.mp4";
+            video.load();
+
+            playButton.style.display = 'block';
+        }
+
+        // NEW FUNCTIONS FOR THE POST-END FLOW
+        let postEndState = 0; 
+
+        function showPostEndFlow() {
+            postEndState = 0;
+            postEndFlowOverlay.style.display = 'flex';
+            postEndText.textContent = "Nagradu ćeš dobiti za 3 sekunde...";
+            postEndBtnContainer.innerHTML = '';
+            let btn = createButton("POŽURI", start23Sequence);
+            postEndBtnContainer.appendChild(btn);
+        }
+
+        function start23Sequence() {
+            // POŽURI clicked
+            postEndBtnContainer.innerHTML = '';
+            audio23.currentTime = 0;
+            audio23.play().catch(()=>{});
+            setTimeout(() => {
+                audio23.pause();
+                audio23.currentTime = 0;
+                showDaljeButton(1);
+            }, 10000);
+        }
+
+        function showDaljeButton(step) {
+            // step 1 = after 23 done
+            // step 2 = after first ne.mp3 done
+            // step 3 = after second ne.mp3 done
+            postEndBtnContainer.innerHTML = '';
+            if (step === 1) {
+                let btn = createButton("DALJE", playNeOnceFirst);
+                postEndBtnContainer.appendChild(btn);
+            } else if (step === 2) {
+                let btn = createButton("DALJE", playNeOnceSecond);
+                postEndBtnContainer.appendChild(btn);
+            } else if (step === 3) {
+                let btn = createButton("NAGRADA", showChocolateMessage);
+                postEndBtnContainer.appendChild(btn);
+            }
+        }
+
+        function playNeOnceFirst() {
+            postEndBtnContainer.innerHTML = '';
+            audioNe.currentTime = 0;
+            audioNe.play().catch(()=>{});
+            audioNe.onended = () => {
+                audioNe.onended = null;
+                showDaljeButton(2); 
+            };
+        }
+
+        function playNeOnceSecond() {
+            postEndBtnContainer.innerHTML = '';
+            audioNe.currentTime = 0;
+            audioNe.play().catch(()=>{});
+            audioNe.onended = () => {
+                audioNe.onended = null;
+                showDaljeButton(3);
+            };
+        }
+
+        function showChocolateMessage() {
+            // NAGRADA clicked
+            postEndFlowOverlay.style.display = 'none';
+            finalMessageOverlay.style.display = 'flex';
+            audioSid.currentTime = 0;
+            audioSid.play().catch(()=>{});
+            audioSid.onended = () => {
+                audioSid.onended = null;
+                // After sid.mp3 ends
+                goToAfterIntro();
+            };
+        }
+
+        function createButton(text, handler) {
+            let btn = document.createElement('button');
+            btn.textContent = text;
+            btn.addEventListener('click', handler);
+            return btn;
+        }
+    </script>
+</body>
+</html>
